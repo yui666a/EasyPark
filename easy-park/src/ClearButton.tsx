@@ -1,17 +1,9 @@
 import Button from "@mui/material/Button";
-import { SxProps } from "@mui/material/styles";
+import type { ButtonProps } from "@mui/material/Button";
 
-type StartButtonProps = {
-  handleClick: () => void;
-  sx?: SxProps;
-};
-
-export const ClearButton: React.FC<StartButtonProps> = ({
-  handleClick,
-  sx,
-}) => {
+export const ClearButton: React.FC<ButtonProps> = ({ sx, ...props }) => {
   return (
-    <Button variant="contained" onClick={handleClick} sx={sx}>
+    <Button variant="contained" sx={sx} {...props}>
       Clear
     </Button>
   );

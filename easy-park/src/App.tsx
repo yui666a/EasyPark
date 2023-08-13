@@ -1,10 +1,9 @@
-import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { intervalToDuration, format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Duration } from "date-fns";
 import { StartButton } from "./StartButton";
 import { ClearButton } from "./ClearButton";
@@ -28,37 +27,32 @@ const App = () => {
   const [beginningTime, setBeginningTime] = useState<string>(
     formattedDate || "00:00:00"
   ); // 駐車開始時刻
-  const [elapsedTime, setElapsedTime] = useState<number[]>([]); // 経過時間
+  const [duration, setDuration] = useState<Duration | null>(null); // 経過時間
   const [price, setPrice] = useState<number>(0);
   const [pastTime, setPastTime] = useState<string>("");
+  const isParking = !!localStorage.getItem("beginningTime");
 
-  setInterval(
-    () => {
-      if (localStorage.getItem("beginningTime")) {
-        // 経過時間の計算
-        const duration = calcElapsedTime();
-        const { years, months, days, hours, minutes, seconds } = duration;
-        const elapsedTime = [
-          years!,
-          months!,
-          days!,
-          hours!,
-          minutes!,
-          seconds!,
-        ];
-        setElapsedTime(elapsedTime);
+  useEffect(() => {
+    const interval = setInterval(
+      () => {
+        if (isParking) {
+          // 経過時間の計算
+          const duration = calcElapsedTime();
+          setDuration(duration);
 
-        // 金額の計算
-        const price = calcPrice(duration);
-        setPrice(price);
+          // 金額の計算
+          const price = calcPrice(duration);
+          setPrice(price);
 
-        // 金額上昇までの時間の計算
-        const { m, s } = calcTimeUntilIncrease(duration);
-        setPastTime(`${m}分 ${s}秒`);
-      }
-    },
-    1000 //1秒ごとに実行
-  );
+          // 金額上昇までの時間の計算
+          const { m, s } = calcTimeUntilIncrease(duration);
+          setPastTime(`${m}分 ${s}秒`);
+        }
+      },
+      1000 //1秒ごとに実行
+    );
+    return () => clearInterval(interval);
+  });
 
   const handleClickBeginButton = useCallback(() => {
     const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss", {
@@ -71,7 +65,7 @@ const App = () => {
   const handleClickClearButton = useCallback(() => {
     localStorage.removeItem("beginningTime");
     setBeginningTime("00:00:00");
-    setElapsedTime([]);
+    setDuration(null);
     setPrice(0);
     setPastTime("");
   }, []);
@@ -82,7 +76,7 @@ const App = () => {
       alignItems="center"
       sx={{ height: 100 + "vh" }}
     >
-      <StartButton handleClick={handleClickBeginButton} />
+      <StartButton onClick={handleClickBeginButton} disabled={isParking} />
 
       <Paper sx={{ m: 2, p: 1 }}>
         <Typography variant="h6">現在</Typography>
@@ -94,12 +88,12 @@ const App = () => {
         <Typography>駐車開始時刻 {beginningTime}</Typography>
         <Typography>
           経過時間
-          {elapsedTime &&
-            `${elapsedTime[2]}日 ${elapsedTime[3]}時間 ${elapsedTime[4]}分 ${elapsedTime[5]}秒`}
+          {duration !== null &&
+            `${duration.days}日 ${duration.hours}時間 ${duration.minutes}分 ${duration.seconds}秒`}
         </Typography>
       </Paper>
 
-      <ClearButton handleClick={handleClickClearButton} />
+      <ClearButton onClick={handleClickClearButton} disabled={!isParking} />
     </Stack>
   );
 };

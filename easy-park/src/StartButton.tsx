@@ -1,15 +1,7 @@
 import Button from "@mui/material/Button";
-import { SxProps } from "@mui/material/styles";
+import type { ButtonProps } from "@mui/material/Button";
 
-type StartButtonProps = {
-  handleClick: () => void;
-  sx?: SxProps;
-};
-
-export const StartButton: React.FC<StartButtonProps> = ({
-  handleClick,
-  sx,
-}) => {
+export const StartButton: React.FC<ButtonProps> = ({ sx, ...props }) => {
   return (
     <Button
       variant="contained"
@@ -22,7 +14,7 @@ export const StartButton: React.FC<StartButtonProps> = ({
         fontSize: "1.5rem",
         ...sx,
       }}
-      onClick={handleClick}
+      {...props}
     >
       開始する
     </Button>
