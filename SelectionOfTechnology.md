@@ -60,6 +60,12 @@ MUI (material-ui) をインストールする
 $ npm install @mui/material @emotion/react @emotion/styled
 ```
 
+date-fns をインストールする
+
+```zsh
+$ npm install date-fns
+```
+
 起動してみる  
 http://localhost:3000/ にアクセスできたら成功
 
