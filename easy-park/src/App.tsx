@@ -8,24 +8,27 @@ import { Duration } from "date-fns";
 import { StartButton } from "./StartButton";
 import { ClearButton } from "./ClearButton";
 
-const UPDATE_SPAN = 2;
+const UPDATE_SPAN = 30;
 const DAIRY_PRICE = 150;
-const MAX_DAIRY_PRICE = 1000;
+const MAX_DAIRY_PRICE = 700;
 // const MIDNIGHT_PRICE = 150;
-const MAX_MIDNIGHT_PRICE = 700;
+const MAX_MIDNIGHT_PRICE = 500;
 const MIDNIGHT_START = 16;
 const MIDNIGHT_END = 8;
 
 const initLocalStorageTime = localStorage.getItem("beginningTime")
-  ? new Date(localStorage.getItem("beginningTime")!)
-  : new Date();
-const formattedDate = format(initLocalStorageTime, "yyyy-MM-dd HH:mm:ss", {
-  locale: ja,
-});
+  ? format(
+      new Date(localStorage.getItem("beginningTime")!),
+      "yyyy-MM-dd HH:mm:ss",
+      {
+        locale: ja,
+      }
+    )
+  : "";
 
 const App = () => {
   const [beginningTime, setBeginningTime] = useState<string>(
-    formattedDate || "00:00:00"
+    initLocalStorageTime || ""
   ); // 駐車開始時刻
   const [duration, setDuration] = useState<Duration | null>(null); // 経過時間
   const [price, setPrice] = useState<number>(0);
@@ -54,13 +57,21 @@ const App = () => {
     return () => clearInterval(interval);
   });
 
-  const handleClickBeginButton = useCallback(() => {
+  // const handleClickBeginButton = useCallback(() => {
+  //   const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss", {
+  //     locale: ja,
+  //   });
+  //   localStorage.setItem("beginningTime", formattedDate);
+  //   setBeginningTime(formattedDate);
+  // }, []);
+
+  const handleClickBeginButton = () => {
     const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss", {
       locale: ja,
     });
     localStorage.setItem("beginningTime", formattedDate);
     setBeginningTime(formattedDate);
-  }, []);
+  };
 
   const handleClickClearButton = useCallback(() => {
     localStorage.removeItem("beginningTime");
