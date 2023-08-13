@@ -9,8 +9,10 @@ import { useState } from "react";
 const UPDATE_SPAN = 2;
 const DAIRY_PRICE = 150;
 const MAX_DAIRY_PRICE = 1000;
-const MIDNIGHT_PRICE = 150;
+// const MIDNIGHT_PRICE = 150;
 const MAX_MIDNIGHT_PRICE = 700;
+const MIDNIGHT_START = 16;
+const MIDNIGHT_END = 8;
 
 const initLocalStorageTime = localStorage.getItem("beginningTime")
   ? new Date(localStorage.getItem("beginningTime")!)
@@ -19,7 +21,12 @@ const formattedDate = format(initLocalStorageTime, "yyyy-MM-dd HH:mm:ss", {
   locale: ja,
 });
 
-const calcElapsedTime = () => {
+/**
+ * 経過時間を計算
+ * @returns Duration
+ * @returns { years: number, months: number, days: number, hours: number, minutes: number, seconds: number }
+ */
+const calcElapsedTime = (): Duration => {
   const beginningTime = new Date(localStorage.getItem("beginningTime")!);
   const duration = intervalToDuration({
     start: beginningTime,
@@ -28,20 +35,43 @@ const calcElapsedTime = () => {
   return duration;
 };
 
-const calcPrice = (elapsedTime: number[]) => {
-  const tmpH = elapsedTime[2] * 24 + elapsedTime[3];
-  const tmpM = tmpH * 60 + elapsedTime[4];
-  let price = (~~(tmpM / UPDATE_SPAN) + 1) * DAIRY_PRICE;
+/**
+ * 現在の料金を計算
+ * @param duration: Duration
+ * @returns number
+ * TODO: 未完成。条件に合わせて計算してください
+ */
+const calcPrice = (duration: Duration): number => {
+  const { days, hours, minutes } = duration;
+  const totalMinutes = hours! * 60 + minutes!;
+  // `~~()`はMath.floorと同じ。小数点以下を切り捨てする。
+  let price = (~~(totalMinutes / UPDATE_SPAN) + 1) * DAIRY_PRICE;
 
-  if (price >= MAX_DAIRY_PRICE) {
-    price = MAX_DAIRY_PRICE;
+  // 深夜料金の計算
+  const beginningTime = new Date(localStorage.getItem("beginningTime")!);
+  const maxPrice =
+    beginningTime.getHours() >= MIDNIGHT_END &&
+    beginningTime.getHours() < MIDNIGHT_START
+      ? MAX_DAIRY_PRICE
+      : MAX_MIDNIGHT_PRICE;
+
+  // 最大料金を超えた場合、最大料金を設定
+  if (price >= maxPrice) {
+    price = maxPrice;
   }
+
+  // 24時間以上経過した場合、最大料金を繰り返し加算
+  price += days! * MAX_DAIRY_PRICE;
   return price;
 };
 
-const calcTimeUntilIncrease = (elapsedTime: number[]) => {
-  const minutes = elapsedTime[4],
-    seconds = elapsedTime[5];
+/**
+ * 金額上昇までの残り時間を計算
+ * @param duration: Duration
+ * @returns { m: number, s: number}
+ */
+const calcTimeUntilIncrease = (duration: Duration) => {
+  const { minutes, seconds } = duration;
   let m, s;
   s = 60 - seconds!;
   if (s === 60) {
@@ -81,11 +111,11 @@ const App = () => {
         setElapsedTime(elapsedTime);
 
         // 金額の計算
-        const price = calcPrice(elapsedTime);
+        const price = calcPrice(duration);
         setPrice(price);
 
         // 金額上昇までの時間の計算
-        const { m, s } = calcTimeUntilIncrease(elapsedTime);
+        const { m, s } = calcTimeUntilIncrease(duration);
         setPastTime(`${m}分 ${s}秒`);
       }
     },
