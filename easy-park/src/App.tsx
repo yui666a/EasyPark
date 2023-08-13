@@ -57,21 +57,13 @@ const App = () => {
     return () => clearInterval(interval);
   });
 
-  // const handleClickBeginButton = useCallback(() => {
-  //   const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss", {
-  //     locale: ja,
-  //   });
-  //   localStorage.setItem("beginningTime", formattedDate);
-  //   setBeginningTime(formattedDate);
-  // }, []);
-
-  const handleClickBeginButton = () => {
+  const handleClickBeginButton = useCallback(() => {
     const formattedDate = format(new Date(), "yyyy-MM-dd HH:mm:ss", {
       locale: ja,
     });
     localStorage.setItem("beginningTime", formattedDate);
     setBeginningTime(formattedDate);
-  };
+  }, []);
 
   const handleClickClearButton = useCallback(() => {
     localStorage.removeItem("beginningTime");
